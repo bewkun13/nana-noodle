@@ -50,13 +50,30 @@ JPEG fallback.
 | hero images | 43 MB | 1.1 MB |
 | gallery | full-size only | thumbnails + full-size, lazy loaded |
 
-### 4. Built for the phone
+### 4. Motion tied to the scroll
+
+Nothing here is decoration for its own sake — each effect tells you the page is responding to you.
+
+- A thin progress bar across the top, so a long menu page has a sense of depth.
+- Parallax on the hero, the CTA band and the menu header: the photo drifts slower than the text
+  in front of it.
+- Photographs **wipe open** as they scroll into view instead of just appearing.
+- Section headlines rise a word at a time.
+- Gallery tiles drift at three different rates, so the grid breathes as you scroll past it.
+- Hero photos each pan a different way — zoom in, drift left, tilt out — over 26 seconds.
+- Cards fade up, in, or scale depending on where they sit, so the page does not all move as a block.
+
+All of it is driven by **one rAF-throttled scroll listener** and IntersectionObserver, so there is
+at most one layout pass per frame. Every effect has a timeout fallback, so nothing can be left
+invisible if an observer misfires. `prefers-reduced-motion: reduce` turns the whole system off.
+
+### 5. Built for the phone
 
 Most restaurant traffic is mobile. There is now a fixed bottom bar — **Call · Directions · Menu &
 Order** — always one tap away, a real mobile nav, and a lightbox gallery with swipe-sized targets
 and keyboard navigation.
 
-### 5. Findable
+### 6. Findable
 
 `Restaurant` structured data (address, phone, hours, menu link) so Google can show hours and the
 menu link directly in search results. Proper titles, descriptions, canonical URLs and Open Graph
@@ -84,13 +101,13 @@ menu.html             the full menu
 assets/
   css/style.css       design system, shared chrome
   css/menu.css        menu page
-  js/site.js          hours logic, nav, hero slider, lightbox, reveal
+  js/site.js          hours logic, nav, hero slider, lightbox, scroll motion
   js/menu.js          menu rendering, search, my-list
   data/menu.json      235 dishes — the only file to touch when the menu changes
   img/hero            3 hero photos (from the current site)
   img/gallery         12 gallery photos (from the current site)
-  img/food            31 dish photos (from the ordering site)
-_source/              raw POS data the menu was built from, kept for reference
+  img/food            31 dish photos, two sizes (from the ordering site)
+_source/              raw POS export the menu was built from — gitignored, see security note
 ```
 
 ## Updating the menu
@@ -113,9 +130,28 @@ empty. If a `.webp` sits next to the `.jpg`, it is served automatically.
 All photos are the restaurant's own, taken from the current website and the ordering site, only
 resized and recompressed — the look is deliberately continuous with what guests already recognise.
 
+The 31 dish photos are pulled at their **source resolution** (1109x1479) rather than the 720px
+the ordering site serves, and kept in two sizes: `name.jpg` at 480px for the 74px menu thumbnails,
+`name-lg.jpg` at 1100px wherever a photo is shown large.
+
+The 12 original gallery photos are genuinely low resolution — between 574x431 and 1024x768, which
+is all that exists. Rather than upscale them into mush, the gallery is now **20 photos**: the 12
+originals at sizes where they stay sharp, plus 8 high-resolution dish shots. If the restaurant can
+supply the original camera files, dropping them into `assets/img/gallery/` is the single biggest
+visual upgrade left on the table.
+
 ## Notes for handover
 
 - No analytics, tracking or third-party scripts are loaded. Google Fonts is the only external
   request (Lato + Poppins, the same faces the current site uses).
 - Prices and hours were captured on 22 August 2026. Verify before going live.
 - The map is a plain Google Maps embed — no API key needed.
+- The phone number is not in the header. It is one tap away in the mobile action bar, and stated
+  in full in the Visit section and the footer — a header that stays clean reads better on a phone.
+
+## Security note for the restaurant
+
+The public page source of `nananoodlessushibarfl.smiledining.com` embeds the shop's SmilePOS
+configuration, including an email password and payment merchant IDs, in plain text where any
+visitor can read it. That is on SmilePOS's side, not something this site can fix, but the owner
+should raise it with them. Nothing from that export is committed to this repository.

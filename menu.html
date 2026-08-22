@@ -15,11 +15,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=3">
-<link rel="stylesheet" href="assets/css/menu.css?v=3">
+<link rel="stylesheet" href="assets/css/style.css?v=6">
+<link rel="stylesheet" href="assets/css/menu.css?v=6">
 </head>
 <body>
 <a class="skip" href="#menu">Skip to the menu</a>
+<div class="progress" aria-hidden="true"></div>
 
 <!-- ============================================================ header -->
 <header class="nav is-stuck">
@@ -37,10 +38,6 @@
     </nav>
 
     <div class="nav__cta">
-      <a class="nav__tel" href="tel:+15614506912">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>
-        <span>(561) 450-6912</span>
-      </a>
       <a class="btn btn--sm" data-order href="https://nananoodlessushibarfl.smiledining.com/" target="_blank" rel="noopener">Order Online</a>
     </div>
 
@@ -52,12 +49,12 @@
 
 <!-- ============================================================== hero -->
 <section class="menu-hero">
-  <div class="menu-hero__bg" aria-hidden="true">
+  <div class="menu-hero__bg px" data-px="0.16" aria-hidden="true">
     <picture><source srcset="assets/img/hero/h3.webp" type="image/webp"><img src="assets/img/hero/h3.jpg" alt=""></picture>
   </div>
   <div class="menu-hero__in wrap">
     <p class="pill" data-status style="margin-bottom:1.25rem"><i class="dot"></i><span>Checking hours&hellip;</span></p>
-    <h1>The full menu</h1>
+    <h1 data-split>The full menu</h1>
     <p class="lede">
       235 dishes across the Thai kitchen and the sushi bar. Search it, tap
       <b style="color:var(--green)">+</b> to build a list, then order online or call it in.
@@ -184,7 +181,7 @@
   </div>
 </div>
 
-<script src="assets/js/site.js?v=3"></script>
-<script src="assets/js/menu.js?v=3"></script>
+<script src="assets/js/site.js?v=6"></script>
+<script src="assets/js/menu.js?v=6"></script>
 </body>
 </html>

@@ -197,6 +197,108 @@
     });
   }
 
+  /* ---------------------------------------------------------------- motion */
+  var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // One rAF-throttled scroll loop drives every scroll-linked effect, so the
+  // page never runs more than one layout pass per frame.
+  function scrollFX() {
+    if (reduced) return;
+
+    var bar = $(".progress");
+    var layers = $$("[data-px]").map(function (el) {
+      return { el: el, rate: parseFloat(el.dataset.px) || 0.12 };
+    });
+    var tiles = $$(".gal button").map(function (el, i) {
+      return { el: el, rate: (i % 3) * 0.035 };   // three staggered columns
+    });
+    if (!bar && !layers.length && !tiles.length) return;
+
+    var ticking = false;
+
+    function frame() {
+      ticking = false;
+      var y = window.scrollY || 0;
+      var vh = window.innerHeight;
+
+      if (bar) {
+        var max = document.documentElement.scrollHeight - vh;
+        bar.style.transform = "scaleX(" + (max > 0 ? Math.min(y / max, 1) : 0) + ")";
+      }
+
+      layers.forEach(function (l) {
+        var r = l.el.getBoundingClientRect();
+        if (r.bottom < -200 || r.top > vh + 200) return;
+        // 0 when the element is centred, ±1 at the edges of the viewport.
+        var mid = (r.top + r.height / 2 - vh / 2) / vh;
+        l.el.style.transform = "translate3d(0," + (mid * l.rate * 100).toFixed(2) + "px,0)";
+      });
+
+      tiles.forEach(function (t) {
+        if (!t.rate) return;
+        var r = t.el.getBoundingClientRect();
+        if (r.bottom < 0 || r.top > vh) return;
+        t.el.style.setProperty("--drift", ((r.top - vh / 2) * -t.rate).toFixed(1) + "px");
+      });
+    }
+
+    function onScroll() {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(frame);
+    }
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    frame();
+  }
+
+  // Headlines marked data-split rise a word at a time.
+  function splitHeadings() {
+    if (reduced) return;
+    $$("[data-split]").forEach(function (h) {
+      var words = h.textContent.trim().split(/\s+/);
+      h.innerHTML = words.map(function (w, i) {
+        return '<span class="split"><span style="--d:' + (i * 55) + 'ms">' + w + "</span></span>";
+      }).join(" ");
+    });
+    if (!("IntersectionObserver" in window)) {
+      $$("[data-split]").forEach(function (h) { h.classList.add("is-lit"); });
+      return;
+    }
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        e.target.classList.add("is-lit");
+        io.unobserve(e.target);
+      });
+    }, { rootMargin: "0px 0px -15% 0px" });
+    $$("[data-split]").forEach(function (h) { io.observe(h); });
+
+    // A heading sits at translateY(105%) until lit, so it must never be left
+    // waiting on an observer that did not fire.
+    setTimeout(function () { $$("[data-split]").forEach(function (h) { h.classList.add("is-lit"); }); }, 3000);
+  }
+
+  // Images wipe open when they first scroll into view.
+  function imageReveal() {
+    var els = $$(".iv");
+    if (!els.length) return;
+    if (reduced || !("IntersectionObserver" in window)) {
+      els.forEach(function (e) { e.classList.add("is-in"); });
+      return;
+    }
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        e.target.classList.add("is-in");
+        io.unobserve(e.target);
+      });
+    }, { rootMargin: "0px 0px -8% 0px" });
+    els.forEach(function (e) { io.observe(e); });
+    setTimeout(function () { els.forEach(function (e) { e.classList.add("is-in"); }); }, 3000);
+  }
+
   /* ---------------------------------------------------------------- reveal */
   function reveal() {
     var els = $$(".rv");
@@ -227,6 +329,9 @@
     hero();
     gallery();
     reveal();
+    splitHeadings();
+    imageReveal();
+    scrollFX();
     $$("[data-year]").forEach(function (e) { e.textContent = new Date().getFullYear(); });
     setInterval(paintStatus, 60000);
   }

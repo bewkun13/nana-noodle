@@ -138,8 +138,7 @@ p{ margin:0 0 1em; }
   }
   .nav.is-open .nav__links{ transform:none; opacity:1; pointer-events:auto; }
   .nav__links a{ padding:.85rem .6rem; font-size:1rem; border-radius:var(--radius-sm); }
-  .nav__cta{ order:3; }
-  .nav__cta .btn{ display:none; }
+  .nav__cta{ display:none; }   /* nothing left in it once the phone moves to the action bar */
   .nav.is-stuck,.nav.is-open{ background:rgba(12,13,11,.94); backdrop-filter:blur(14px); border-bottom-color:var(--line); }
 }
 
@@ -289,3 +288,94 @@ p{ margin:0 0 1em; }
 .skip{ position:absolute; top:-100px; left:1rem; z-index:200; background:var(--green); color:#0c0d0b;
        padding:.75rem 1.25rem; border-radius:0 0 10px 10px; font-family:var(--head); font-weight:600; }
 .skip:focus{ top:0; }
+
+/* ==========================================================================
+   Motion — scroll-linked effects
+   Everything here degrades to a plain static page when JS is off or the
+   visitor asks for reduced motion.
+   ========================================================================== */
+
+/* ---------- reading-progress bar ---------- */
+.progress{
+  position:fixed; inset:0 auto auto 0; z-index:90; height:2px; width:100%;
+  transform:scaleX(0); transform-origin:0 50%;
+  background:linear-gradient(90deg,var(--green),var(--gold));
+  will-change:transform; pointer-events:none;
+}
+
+/* ---------- parallax layers ---------- */
+/* The image is grown past its frame so it can drift without exposing an edge. */
+.px{ will-change:transform; }
+.hero__bg figure,
+.band__bg,
+.menu-hero__bg{ overflow:hidden; }
+.hero__bg img,
+.band__bg img,
+.menu-hero__bg img{ height:118%; top:-9%; position:absolute; left:0; }
+
+/* ---------- hero: slow drift, alternating per slide ---------- */
+.hero__bg img{ animation:kb 26s ease-out both; }
+.hero__bg figure:nth-child(2) img{ animation-name:kb-alt; }
+.hero__bg figure:nth-child(3) img{ animation-name:kb-tilt; }
+@keyframes kb    { from{ transform:scale(1.14) translate3d(0,0,0);      } to{ transform:scale(1) translate3d(0,0,0);        } }
+@keyframes kb-alt{ from{ transform:scale(1.02) translate3d(-2.5%,0,0);  } to{ transform:scale(1.14) translate3d(2%,-1%,0);  } }
+@keyframes kb-tilt{from{ transform:scale(1.16) translate3d(2%,1.5%,0);  } to{ transform:scale(1.02) translate3d(0,0,0);      } }
+
+/* ---------- images wipe in as they enter view ---------- */
+.iv{ overflow:hidden; }
+.iv > img,.iv > picture{
+  display:block;
+  clip-path:inset(0 0 100% 0);
+  transform:scale(1.12);
+  transition:clip-path 1.05s cubic-bezier(.16,.84,.28,1), transform 1.4s cubic-bezier(.16,.84,.28,1);
+}
+.iv.is-in > img,.iv.is-in > picture{ clip-path:inset(0 0 0 0); transform:scale(1); }
+img.iv{ clip-path:inset(0 0 100% 0); transform:scale(1.08);
+        transition:clip-path 1.05s cubic-bezier(.16,.84,.28,1), transform 1.4s cubic-bezier(.16,.84,.28,1); }
+img.iv.is-in{ clip-path:inset(0 0 0 0); transform:scale(1); }
+
+/* ---------- richer section reveals ---------- */
+.rv{ transition:opacity .8s ease, transform .9s cubic-bezier(.16,.84,.28,1), filter .8s ease; filter:blur(6px); }
+.rv.is-in{ filter:blur(0); }
+.rv--left { transform:translate3d(-34px,0,0); }
+.rv--right{ transform:translate3d(34px,0,0); }
+.rv--zoom { transform:scale(.94); }
+.rv--left.is-in,.rv--right.is-in,.rv--zoom.is-in{ transform:none; }
+
+/* ---------- headline words rise in sequence ---------- */
+.split{ display:inline-block; overflow:hidden; vertical-align:top; }
+.split > span{
+  display:inline-block;
+  transform:translate3d(0,105%,0);
+  transition:transform .95s cubic-bezier(.16,.84,.28,1);
+  transition-delay:var(--d,0ms);
+}
+.is-lit .split > span{ transform:none; }
+
+/* ---------- cards lift as the page moves under them ---------- */
+.dish img{ transition:transform .7s cubic-bezier(.2,.8,.3,1); }
+.dish:hover img{ transform:scale(1.07); }
+.gal picture{ display:block; overflow:hidden; }
+
+/* ---------- gallery tiles drift at slightly different rates ---------- */
+.gal button{ transform:translate3d(0,var(--drift,0px),0); transition:transform .12s linear; }
+.gal button:hover{ transition:transform .4s ease; }
+
+/* ---------- floating accent behind the story section ---------- */
+.glow{
+  position:absolute; border-radius:50%; filter:blur(90px); opacity:.16; pointer-events:none; z-index:0;
+  background:radial-gradient(circle,var(--green),transparent 65%);
+}
+.section{ position:relative; }
+/* a blurred accent must not widen the document */
+.has-glow{ overflow:hidden; }
+.section > .wrap{ position:relative; z-index:1; }
+
+@media (prefers-reduced-motion:reduce){
+  .progress{ display:none; }
+  .iv > img,.iv > picture,img.iv{ clip-path:none; transform:none; }
+  .split > span{ transform:none; }
+  .rv{ filter:none; }
+  .hero__bg img{ animation:none; height:100%; top:0; }
+  .gal button{ transform:none; }
+}
