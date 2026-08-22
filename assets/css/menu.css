@@ -168,3 +168,106 @@
   .tabs{ grid-area:tabs; justify-content:flex-end; }
   .chips{ grid-area:chips; }
 }
+
+/* ==========================================================================
+   Dish dialog — tap any item for the photo at full size and everything the
+   kitchen lets you choose.
+   ========================================================================== */
+.item{ cursor:pointer; }
+.item:focus-visible{ outline:2.5px solid var(--green); outline-offset:3px; }
+.item__zoom{
+  position:absolute; inset:auto auto .3rem .3rem;
+  width:22px; height:22px; border-radius:50%;
+  background:rgba(22,19,15,.72); backdrop-filter:blur(4px);
+  display:grid; place-items:center; opacity:0; transition:opacity .2s;
+}
+.item__zoom svg{ width:12px; height:12px; color:var(--ink); }
+.item__img{ position:relative; }
+.item:hover .item__zoom{ opacity:1; }
+
+.dish-dialog{
+  position:fixed; inset:0; z-index:130; display:none;
+  padding:clamp(.75rem,3vw,2.5rem); place-items:center;
+}
+.dish-dialog.is-open{ display:grid; }
+.dish-dialog__veil{ position:absolute; inset:0; background:rgba(14,12,9,.86); backdrop-filter:blur(8px); }
+.dish-dialog__panel{
+  position:relative; width:min(880px,100%); max-height:92svh; overflow:hidden;
+  display:grid; grid-template-columns:1fr 1fr;
+  background:var(--bg-2); border:1px solid var(--line);
+  border-radius:var(--radius-lg); box-shadow:var(--shadow);
+  animation:dishin .3s cubic-bezier(.16,.84,.28,1);
+}
+@keyframes dishin{ from{ opacity:0; transform:translateY(18px) scale(.97); } }
+@media (max-width:720px){
+  .dish-dialog__panel{ grid-template-columns:1fr; grid-template-rows:auto 1fr; }
+}
+
+.dish-dialog__media{ position:relative; background:var(--bg-3); min-height:220px; }
+.dish-dialog__media img{ width:100%; height:100%; object-fit:cover; }
+@media (max-width:720px){ .dish-dialog__media{ height:min(38svh,300px); } }
+/* no photograph: a typographic plate instead of an empty box */
+.dish-dialog__media.is-blank{
+  display:grid; place-items:center; padding:2rem;
+  background:
+    radial-gradient(80% 80% at 50% 30%, var(--green-dim), transparent 70%), var(--bg-3);
+}
+.dish-dialog__mark{
+  font-family:var(--head); font-size:clamp(2.6rem,7vw,4rem); font-weight:700;
+  color:var(--green); opacity:.45; letter-spacing:-.04em; line-height:1; text-align:center;
+}
+
+.dish-dialog__body{ padding:clamp(1.4rem,3vw,2.1rem); overflow-y:auto; }
+.dish-dialog__cat{
+  font-family:var(--head); font-size:.7rem; font-weight:600; letter-spacing:.2em;
+  text-transform:uppercase; color:var(--green); margin:0 0 .7rem;
+}
+.dish-dialog__name{ font-size:clamp(1.4rem,3.2vw,1.95rem); margin:0 0 .55rem; }
+.dish-dialog__name .raw{ color:var(--chili); }
+.dish-dialog__price{
+  font-family:var(--head); font-weight:700; font-size:1.35rem; color:var(--gold);
+  margin:0 0 1rem; font-variant-numeric:tabular-nums;
+}
+.dish-dialog__desc{ color:var(--ink-2); font-size:1rem; line-height:1.7; margin:0 0 1.35rem; }
+.dish-dialog__note{
+  font-size:.85rem; color:var(--ink-3); font-style:italic;
+  padding:.75rem .9rem; border-left:2px solid var(--green-deep);
+  background:var(--green-dim); border-radius:0 8px 8px 0; margin:0 0 1.35rem;
+}
+
+.opts{ display:grid; gap:1.1rem; margin:0 0 1.6rem; }
+.opt h4{
+  font-family:var(--head); font-size:.76rem; font-weight:600; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--ink-2); margin:0 0 .5rem;
+  display:flex; align-items:center; gap:.5rem; flex-wrap:wrap;
+}
+.opt h4 em{
+  font-style:normal; font-size:.62rem; letter-spacing:.08em; padding:.14rem .45rem;
+  border-radius:999px; background:var(--gold-dim); color:var(--gold); border:1px solid rgba(232,185,104,.3);
+}
+.opt h4 em.req{ background:var(--green-dim); color:var(--green); border-color:rgba(158,203,124,.32); }
+.opt ul{ list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:.35rem; }
+.opt li{
+  font-size:.83rem; padding:.32rem .7rem; border-radius:999px;
+  background:var(--bg-3); border:1px solid var(--line); color:var(--ink-2);
+}
+.opt li b{ color:var(--gold); font-weight:600; font-variant-numeric:tabular-nums; }
+
+.dish-dialog__foot{ display:flex; flex-wrap:wrap; gap:.6rem; }
+.dish-dialog__x{
+  position:absolute; top:.85rem; right:.85rem; z-index:3;
+  width:38px; height:38px; border-radius:50%; cursor:pointer; font-size:1.25rem; line-height:1;
+  background:rgba(22,19,15,.75); backdrop-filter:blur(6px);
+  border:1px solid var(--line-strong); color:var(--ink); display:grid; place-items:center;
+  transition:.2s;
+}
+.dish-dialog__x:hover{ background:var(--green); color:var(--bg); border-color:var(--green); }
+
+/* ---------- category headers carry a photograph ---------- */
+.cat__head{ position:relative; }
+.cat__shot{
+  float:right; width:96px; height:64px; margin:0 0 .5rem 1rem;
+  border-radius:var(--radius-sm); overflow:hidden; border:1px solid var(--line);
+}
+.cat__shot img{ width:100%; height:100%; object-fit:cover; }
+@media (max-width:560px){ .cat__shot{ width:70px; height:52px; } }

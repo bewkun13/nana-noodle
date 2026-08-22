@@ -29,8 +29,13 @@ the SmileDining ordering site. That is the single biggest drop-off point.
   cleanly instead of leaving holes.
 - **"My list."** Tap `+` on any dish to build a list with running total, saved on the device. From
   the list drawer: *Order online* (hands off to SmileDining), *Copy list*, or *Call to order*.
-- Keyboard `/` focuses search. Deep links work: `menu.html#cat-nanan-special-rolls` switches to the
-  right tab and scrolls there.
+- **Tap any dish for the full story.** A dialog opens with the photograph at full size, the whole
+  description, and *every choice the kitchen offers* — meat, spice level 0 to 5, rice substitution,
+  sauces, extras, with the price of each. That data comes straight from the POS: 53 distinct option
+  groups covering 155 of the 235 dishes. Neither the current website nor the ordering page shows any
+  of it before you commit to an item.
+- Keyboard `/` focuses search, Enter opens the dish under the cursor, Escape closes. Deep links work:
+  `menu.html#cat-nanan-special-rolls` switches to the right tab and scrolls there.
 
 ### 2. Live open/closed status
 
@@ -50,7 +55,21 @@ JPEG fallback.
 | hero images | 43 MB | 1.1 MB |
 | gallery | full-size only | thumbnails + full-size, lazy loaded |
 
-### 4. Motion tied to the scroll
+### 4. Warm ink, not flat black
+
+The first pass was near-black `#0c0d0b` end to end, and a flat black page reads cheap — there is
+nothing for light to do. The palette is now a warm espresso ground (`#16130f`) where every dark
+surface carries a little red and yellow, closer to lacquer and roasted wood than a switched-off
+screen. On top of that:
+
+- Fine **film grain** across the whole page, so large dark areas have a surface.
+- Three soft **colour washes** — gold, green, chilli — fixed behind the page, so no two screens are
+  the same flat tone.
+- **Photographs behind sections.** Our Kitchen, Gallery and Visit each sit on a dish photo under a
+  heavy gradient; so does the menu list.
+- Cards and panels get a **lacquer edge** — a one-pixel warm highlight along the top.
+
+### 5. Motion tied to the scroll
 
 Nothing here is decoration for its own sake — each effect tells you the page is responding to you.
 
@@ -67,13 +86,13 @@ All of it is driven by **one rAF-throttled scroll listener** and IntersectionObs
 at most one layout pass per frame. Every effect has a timeout fallback, so nothing can be left
 invisible if an observer misfires. `prefers-reduced-motion: reduce` turns the whole system off.
 
-### 5. Built for the phone
+### 6. Built for the phone
 
 Most restaurant traffic is mobile. There is now a fixed bottom bar — **Call · Directions · Menu &
 Order** — always one tap away, a real mobile nav, and a lightbox gallery with swipe-sized targets
 and keyboard navigation.
 
-### 6. Findable
+### 7. Findable
 
 `Restaurant` structured data (address, phone, hours, menu link) so Google can show hours and the
 menu link directly in search results. Proper titles, descriptions, canonical URLs and Open Graph
@@ -103,10 +122,14 @@ assets/
   css/menu.css        menu page
   js/site.js          hours logic, nav, hero slider, lightbox, scroll motion
   js/menu.js          menu rendering, search, my-list
-  data/menu.json      235 dishes — the only file to touch when the menu changes
+  data/menu.json      235 dishes + 53 option groups — the only file to touch
+                      when the menu changes
   img/hero            3 hero photos (from the current site)
   img/gallery         12 gallery photos (from the current site)
-  img/food            31 dish photos, two sizes (from the ordering site)
+  img/food            31 dish photos in three sizes (from the ordering site)
+                        name.jpg     480px  menu thumbnails
+                        name-md.jpg  760px  cards and gallery tiles
+                        name-lg.jpg 1100px  dish dialog, lightbox, backdrops
 _source/              raw POS export the menu was built from — gitignored, see security note
 ```
 
@@ -115,15 +138,27 @@ _source/              raw POS export the menu was built from — gitignored, see
 Edit `assets/data/menu.json`. The shape is:
 
 ```json
-[{ "group": "Lunch",
-   "cats": [{ "cat": "Thai Lunch", "note": "", "raw": false,
-              "items": [{ "name": "L - Pad Thai", "price": 10.95,
-                          "desc": "…", "img": "assets/img/food/l-pad-thai.jpg" }] }] }]
+{
+  "sets": {
+    "a1b2c3d4": { "n": "Meat", "req": true, "multi": false,
+                  "c": [{ "n": "Chicken", "p": 1 }, { "n": "Beef", "p": 4 }] }
+  },
+  "menu": [{ "group": "Lunch",
+     "cats": [{ "cat": "Thai Lunch", "note": "", "raw": false,
+                "items": [{ "name": "L - Pad Thai", "price": 10.95, "desc": "…",
+                            "img": "assets/img/food/l-pad-thai.jpg",
+                            "opts": ["a1b2c3d4"] }] }] }]
+}
 ```
 
-A leading `*` in a dish name marks it as containing raw or undercooked items and renders the red
-asterisk. `raw: true` on a category is reserved for the same warning at category level. `img` may be
-empty. If a `.webp` sits next to the `.jpg`, it is served automatically.
+`sets` holds every option group once and items reference them by id, which keeps the file at 47 KB
+instead of triple that. `req` marks a group the guest must choose from, `multi` one they may pick
+several of.
+
+A leading `*` in a dish name marks it as containing raw or undercooked items — it renders the red
+asterisk and adds the advisory to the dish dialog. `img` may be empty; the dialog then shows a
+typographic plate with the dish's initial instead of an empty box. If a `.webp` sits next to a
+`.jpg`, it is served automatically, and `-md`/`-lg` variants are picked up by filename.
 
 ## Photography
 

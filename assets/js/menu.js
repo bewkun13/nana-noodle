@@ -19,7 +19,9 @@
   var money = function (n) { return "$" + n.toFixed(2); };
   var slug = function (s) { return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); };
 
-  var DATA = [];
+  var DATA = [];      // menu groups
+  var SETS = {};      // deduped option groups, keyed by id
+  var INDEX = {};     // item id -> { item, cat, group } for the dialog
   var group = 0;
   var query = "";
   var list = load();
@@ -59,10 +61,16 @@
     var qty = qtyOf(id);
     var star = it.name.charAt(0) === "*";
     var name = star ? it.name.slice(1).trim() : it.name.trim();
-    return '<article class="item' + (it.img ? " has-img" : "") + '">' +
+    INDEX[id] = { it: it, cat: cat, name: name, star: star };
+
+    return '<article class="item' + (it.img ? " has-img" : "") + '" data-open="' + esc(id) + '"' +
+      ' tabindex="0" role="button" aria-label="' + esc(name) + ', ' + money(it.price) + ', see details">' +
       (it.img
         ? '<picture class="item__img"><source srcset="' + esc(it.img.replace(/\.jpg$/, ".webp")) + '" type="image/webp">' +
-          '<img src="' + esc(it.img) + '" alt="' + esc(name) + '" loading="lazy" decoding="async"></picture>'
+          '<img src="' + esc(it.img) + '" alt="' + esc(name) + '" loading="lazy" decoding="async">' +
+          '<span class="item__zoom" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+          'stroke-width="2.4" stroke-linecap="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-8 8M3 21l8-8"/></svg></span>' +
+          "</picture>"
         : "<span></span>") +
       '<div class="item__main">' +
         '<h3 class="item__name">' + (star ? '<span class="raw" title="Contains raw or undercooked items">*</span>' : "") +
@@ -91,12 +99,17 @@
     }
 
     body.innerHTML = cats.map(function (c) {
+      var shot = catShot(c);
       return '<section class="cat" id="cat-' + slug(c.cat) + '">' +
-        '<div class="cat__head"><h2>' + esc(c.cat) +
+        '<div class="cat__head">' +
+        (shot ? '<div class="cat__shot" aria-hidden="true">' +
+                '<picture><source srcset="' + esc(shot.replace(/\.jpg$/, ".webp")) + '" type="image/webp">' +
+                '<img src="' + esc(shot) + '" alt="" loading="lazy"></picture></div>' : "") +
+        '<h2>' + esc(c.cat) +
           "<span>" + c.items.length + " item" + (c.items.length === 1 ? "" : "s") +
           (query ? " &middot; " + esc(c.group) : "") + "</span></h2>" +
           (c.note ? '<p class="cat__note">' + esc(c.note) + "</p>" : "") +
-        "</div>" +
+        '<div style="clear:both"></div></div>' +
         '<div class="items">' + c.items.map(function (it) { return itemHTML(it, c.cat); }).join("") + "</div>" +
       "</section>";
     }).join("");
@@ -106,6 +119,83 @@
     }).join("");
 
     spy();
+  }
+
+  /* --------------------------------------------------------- dish dialog */
+  // The first photo in a category doubles as that category's thumbnail.
+  function catShot(c) {
+    for (var i = 0; i < c.items.length; i++) {
+      if (c.items[i].img) return c.items[i].img;
+    }
+    return "";
+  }
+
+  function optsHTML(ids) {
+    if (!ids || !ids.length) return "";
+    var blocks = ids.map(function (id) {
+      var o = SETS[id];
+      if (!o || !o.c.length) return "";
+      return '<div class="opt"><h4>' + esc(o.n) +
+        (o.req ? ' <em class="req">choose one</em>' : ' <em>' + (o.multi ? "add any" : "optional") + "</em>") +
+        "</h4><ul>" + o.c.map(function (c) {
+          return "<li>" + esc(c.n) + (c.p ? " <b>+" + money(c.p) + "</b>" : "") + "</li>";
+        }).join("") + "</ul></div>";
+    }).join("");
+    return blocks ? '<div class="opts">' + blocks + "</div>" : "";
+  }
+
+  var dlgLast = null;
+
+  // "L - Fried Rice" is a lunch-menu prefix, not the dish. Mark it with the F.
+  function initial(name) {
+    return name.replace(/^[A-Z]\s*[-–]\s*/, "").charAt(0).toUpperCase() || name.charAt(0);
+  }
+
+  function openDish(id) {
+    var rec = INDEX[id];
+    if (!rec) return;
+    var it = rec.it, dlg = $("[data-dish]");
+    var big = it.img ? it.img.replace(/\.jpg$/, "-lg.jpg") : "";
+
+    $("[data-dish-media]").className = "dish-dialog__media" + (big ? "" : " is-blank");
+    $("[data-dish-media]").innerHTML = big
+      ? '<picture><source srcset="' + esc(big.replace(/\.jpg$/, ".webp")) + '" type="image/webp">' +
+        '<img src="' + esc(big) + '" alt="' + esc(rec.name) + '"></picture>'
+      : '<span class="dish-dialog__mark">' + esc(initial(rec.name)) + "</span>";
+
+    $("[data-dish-cat]").textContent = rec.cat;
+    $("[data-dish-name]").innerHTML =
+      (rec.star ? '<span class="raw" title="Contains raw or undercooked items">*</span>' : "") + esc(rec.name);
+    $("[data-dish-price]").textContent = money(it.price);
+    $("[data-dish-desc]").innerHTML = it.desc ? esc(it.desc) : "";
+    $("[data-dish-desc]").style.display = it.desc ? "" : "none";
+
+    var note = $("[data-dish-note]");
+    note.textContent = rec.star
+      ? "Contains raw or undercooked items. Consuming these may increase your risk of foodborne illness."
+      : "";
+    note.style.display = rec.star ? "" : "none";
+
+    $("[data-dish-opts]").innerHTML = optsHTML(it.opts);
+
+    var add = $("[data-dish-add]");
+    add.dataset.add = id;
+    add.dataset.name = rec.name;
+    add.dataset.price = it.price;
+    add.textContent = qtyOf(id) ? "In my list (" + qtyOf(id) + ") — add another" : "Add to my list";
+
+    dlgLast = document.activeElement;
+    dlg.classList.add("is-open");
+    document.body.style.overflow = "hidden";
+    $(".dish-dialog__x", dlg).focus();
+  }
+
+  function closeDish() {
+    var dlg = $("[data-dish]");
+    if (!dlg.classList.contains("is-open")) return;
+    dlg.classList.remove("is-open");
+    document.body.style.overflow = "";
+    if (dlgLast) dlgLast.focus();
   }
 
   /* ------------------------------------------------------- category rail */
@@ -243,7 +333,21 @@
 
     document.addEventListener("click", function (e) {
       var add = e.target.closest("[data-add]");
-      if (add) { bump(add.dataset.add, add.dataset.name, parseFloat(add.dataset.price), 1); return; }
+      if (add) {
+        e.stopPropagation();
+        bump(add.dataset.add, add.dataset.name, parseFloat(add.dataset.price), 1);
+        if (add.hasAttribute("data-dish-add")) {
+          add.textContent = "In my list (" + qtyOf(add.dataset.add) + ") — add another";
+        }
+        return;
+      }
+
+      if (e.target.closest("[data-dish] .dish-dialog__veil") || e.target.closest("[data-dish-close]")) {
+        closeDish(); return;
+      }
+
+      var open = e.target.closest("[data-open]");
+      if (open) { openDish(open.dataset.open); return; }
 
       var step = e.target.closest("[data-step]");
       if (step) {
@@ -257,7 +361,11 @@
     });
 
     document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape") drawer(false);
+      var card = e.target.closest && e.target.closest("[data-open]");
+      if (card && (e.key === "Enter" || e.key === " ")) {
+        e.preventDefault(); openDish(card.dataset.open); return;
+      }
+      if (e.key === "Escape") { closeDish(); drawer(false); }
       // "/" focuses search, the way people expect on a long list.
       if (e.key === "/" && document.activeElement !== input) { e.preventDefault(); input.focus(); }
     });
@@ -301,7 +409,8 @@
   fetch("assets/data/menu.json")
     .then(function (r) { return r.json(); })
     .then(function (json) {
-      DATA = json;
+      DATA = json.menu || json;
+      SETS = json.sets || {};
       $("[data-tabs]").innerHTML = DATA.map(function (g, i) {
         return '<button type="button" role="tab" data-group aria-selected="' + (i === 0) + '">' +
                esc(g.group) + "</button>";

@@ -15,8 +15,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=6">
-<link rel="stylesheet" href="assets/css/menu.css?v=6">
+<link rel="stylesheet" href="assets/css/style.css?v=9">
+<link rel="stylesheet" href="assets/css/menu.css?v=9">
 </head>
 <body>
 <a class="skip" href="#menu">Skip to the menu</a>
@@ -78,7 +78,10 @@
 </div>
 
 <!-- ============================================================= menu -->
-<main class="menu-body" id="menu">
+<main class="menu-body bgshot bgshot--soft" id="menu">
+  <div class="bgshot__img" aria-hidden="true">
+    <picture><source srcset="assets/img/hero/h1.webp" type="image/webp"><img src="assets/img/hero/h1.jpg" alt=""></picture>
+  </div>
   <div class="wrap">
     <div data-menu>
       <div class="empty"><strong>Loading the menu&hellip;</strong>One moment.</div>
@@ -181,7 +184,28 @@
   </div>
 </div>
 
-<script src="assets/js/site.js?v=6"></script>
-<script src="assets/js/menu.js?v=6"></script>
+<!-- ====================================================== dish dialog -->
+<div class="dish-dialog" data-dish role="dialog" aria-modal="true" aria-labelledby="dishName">
+  <div class="dish-dialog__veil"></div>
+  <div class="dish-dialog__panel">
+    <button class="dish-dialog__x" type="button" data-dish-close aria-label="Close">&times;</button>
+    <div class="dish-dialog__media" data-dish-media></div>
+    <div class="dish-dialog__body">
+      <p class="dish-dialog__cat" data-dish-cat></p>
+      <h2 class="dish-dialog__name" id="dishName" data-dish-name></h2>
+      <p class="dish-dialog__price" data-dish-price></p>
+      <p class="dish-dialog__desc" data-dish-desc></p>
+      <p class="dish-dialog__note" data-dish-note></p>
+      <div data-dish-opts></div>
+      <div class="dish-dialog__foot">
+        <button class="btn" type="button" data-dish-add data-add>Add to my list</button>
+        <a class="btn btn--ghost" data-order href="https://nananoodlessushibarfl.smiledining.com/" target="_blank" rel="noopener">Order online</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="assets/js/site.js?v=9"></script>
+<script src="assets/js/menu.js?v=9"></script>
 </body>
 </html>
