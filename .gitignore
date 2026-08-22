@@ -1,0 +1,6 @@
+.claude/
+*.log
+Thumbs.db
+.DS_Store
+# POS export contains merchant IDs and passwords — never commit
+_source/
