@@ -55,6 +55,44 @@
     return out;
   }
 
+
+  // 204 of the 235 dishes have no photograph. Rather than leave a hole, each
+  // gets the line glyph for its category — drawn for this site, so it costs
+  // nothing to ship and recolours with the palette.
+  var GLYPH = [
+    [/hand roll/i,            "g-handroll"],
+    [/roll|maki/i,            "g-maki"],
+    [/sashimi/i,              "g-sashimi"],
+    [/sushi platter|platter/i,"g-platter"],
+    [/boat/i,                 "g-boat"],
+    [/sushi/i,                "g-nigiri"],
+    [/bento/i,                "g-bento"],
+    [/soup/i,                 "g-soup"],
+    [/salad/i,                "g-salad"],
+    [/curr/i,                 "g-curry"],
+    [/noodle|fried rice/i,    "g-noodles"],
+    [/stir.?fried/i,          "g-wok"],
+    [/grill|entree/i,         "g-grill"],
+    [/side/i,                 "g-rice"],
+    [/drink/i,                "g-drink"],
+    [/combo/i,                "g-combo"],
+    [/japanese appetiz/i,     "g-leaf"],
+    [/appetiz/i,              "g-dumpling"],
+    [/lunch/i,                "g-noodles"]
+  ];
+
+  function glyphFor(cat) {
+    for (var i = 0; i < GLYPH.length; i++) {
+      if (GLYPH[i][0].test(cat)) return GLYPH[i][1];
+    }
+    return "g-noodles";
+  }
+
+  function plateHTML(cat, cls) {
+    return '<span class="plate ' + cls + '" aria-hidden="true">' +
+           '<svg class="glyph" viewBox="0 0 24 24"><use href="#' + glyphFor(cat) + '"></use></svg></span>';
+  }
+
   /* -------------------------------------------------------------- render */
   function itemHTML(it, cat) {
     var id = slug(cat + "-" + it.name);
@@ -71,7 +109,7 @@
           '<span class="item__zoom" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
           'stroke-width="2.4" stroke-linecap="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-8 8M3 21l8-8"/></svg></span>' +
           "</picture>"
-        : "<span></span>") +
+        : plateHTML(cat, "item__img")) +
       '<div class="item__main">' +
         '<h3 class="item__name">' + (star ? '<span class="raw" title="Contains raw or undercooked items">*</span>' : "") +
           esc(name) + "</h3>" +
@@ -161,7 +199,8 @@
     $("[data-dish-media]").innerHTML = big
       ? '<picture><source srcset="' + esc(big.replace(/\.jpg$/, ".webp")) + '" type="image/webp">' +
         '<img src="' + esc(big) + '" alt="' + esc(rec.name) + '"></picture>'
-      : '<span class="dish-dialog__mark">' + esc(initial(rec.name)) + "</span>";
+      : '<span class="dish-dialog__mark"><svg class="glyph" viewBox="0 0 24 24"><use href="#' +
+        glyphFor(rec.cat) + '"></use></svg><em>' + esc(initial(rec.name)) + "</em></span>";
 
     $("[data-dish-cat]").textContent = rec.cat;
     $("[data-dish-name]").innerHTML =

@@ -69,7 +69,28 @@ screen. On top of that:
   heavy gradient; so does the menu list.
 - Cards and panels get a **lacquer edge** — a one-pixel warm highlight along the top.
 
-### 5. Motion tied to the scroll
+### 5. Original ornament, no stock photography
+
+Two thirds of the menu — **204 of the 235 dishes** — has no photograph, and the ordering site
+leaves those as bare rows. Buying stock food photos would be worse than leaving them empty: a guest
+who orders from a picture of someone else's dish and gets something different stops trusting the
+whole page.
+
+So the decoration is drawn for this site instead, as SVG:
+
+- **Sixteen line glyphs**, one per menu category — a noodle bowl, nigiri, a maki cross-section, a
+  hand roll cone, a sashimi plate, a curry pot, a wok, a bento box, a sushi boat, a drink. Every
+  photo-less dish gets the glyph for its category, and the dish dialog shows it large behind a faded
+  initial. The whole set is 5 KB, inlined once per page, and recolours with the palette.
+- **Seigaiha** — the classic overlapping-wave ground — behind Our Kitchen, Visit, the CTA band and
+  the menu list, at 5% opacity so it reads as texture rather than pattern.
+- **Asanoha**, the hemp-leaf lattice, layered over it on the Visit section and the menu header.
+- A **brush stroke** divider closing the story section.
+- A quiet **corner arc** on each story card that widens on hover.
+
+None of it is a raster image, so it costs 5 KB total and stays sharp on any display.
+
+### 6. Motion tied to the scroll
 
 Nothing here is decoration for its own sake — each effect tells you the page is responding to you.
 
@@ -86,13 +107,13 @@ All of it is driven by **one rAF-throttled scroll listener** and IntersectionObs
 at most one layout pass per frame. Every effect has a timeout fallback, so nothing can be left
 invisible if an observer misfires. `prefers-reduced-motion: reduce` turns the whole system off.
 
-### 6. Built for the phone
+### 7. Built for the phone
 
 Most restaurant traffic is mobile. There is now a fixed bottom bar — **Call · Directions · Menu &
 Order** — always one tap away, a real mobile nav, and a lightbox gallery with swipe-sized targets
 and keyboard navigation.
 
-### 7. Findable
+### 8. Findable
 
 `Restaurant` structured data (address, phone, hours, menu link) so Google can show hours and the
 menu link directly in search results. Proper titles, descriptions, canonical URLs and Open Graph
@@ -124,6 +145,7 @@ assets/
   js/menu.js          menu rendering, search, my-list
   data/menu.json      235 dishes + 53 option groups — the only file to touch
                       when the menu changes
+  img/glyphs.svg      16 line glyphs, one per menu category
   img/hero            3 hero photos (from the current site)
   img/gallery         12 gallery photos (from the current site)
   img/food            31 dish photos in three sizes (from the ordering site)
@@ -175,12 +197,18 @@ originals at sizes where they stay sharp, plus 8 high-resolution dish shots. If 
 supply the original camera files, dropping them into `assets/img/gallery/` is the single biggest
 visual upgrade left on the table.
 
+The same goes for the 204 dishes with no photograph. They look deliberate now rather than unfinished,
+but a real photo always beats a glyph — and the restaurant only needs to shoot the dishes people
+order most, not all 204.
+
 ## Notes for handover
 
 - No analytics, tracking or third-party scripts are loaded. Google Fonts is the only external
   request (Lato + Poppins, the same faces the current site uses).
 - Prices and hours were captured on 22 August 2026. Verify before going live.
 - The map is a plain Google Maps embed — no API key needed.
+- No stock photography anywhere. Every photograph is the restaurant's own; every other graphic is
+  SVG drawn for this site. Nothing here needs a licence or an attribution line.
 - The phone number is not in the header. It is one tap away in the mobile action bar, and stated
   in full in the Visit section and the footer — a header that stays clean reads better on a phone.
 
